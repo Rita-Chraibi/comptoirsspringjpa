@@ -1,7 +1,9 @@
 package comptoirs.service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
+import comptoirs.entity.Ligne;
 import org.springframework.stereotype.Service;
 
 import comptoirs.dao.ClientRepository;
@@ -63,7 +65,18 @@ public class CommandeService {
      */
     @Transactional
     public Commande enregistreExpédition(Integer commandeNum) {
-        // TODO : implémenter ce service métier
-        throw new UnsupportedOperationException("Pas encore implémenté");
+        //verifie si la commande existe
+        var commande = commandeDao.findById(commandeNum).orElseThrow();
+        //commande ne doit pas être deja envoyée
+        var exp = commande.getEnvoyeele();
+        if (exp == null) {
+            commande.setEnvoyeele(LocalDate.now());
+            for (Ligne l : commande.getLignes()) {
+                var produit = l.getProduit();
+                var stock = produit.getUnitesEnStock();
+                produit.setUnitesEnStock(stock - l.getQuantite());
+            }
+        }
+        return commande;
     }
 }

@@ -45,6 +45,25 @@ public class LigneService {
      */
     @Transactional
     Ligne ajouterLigne(Integer commandeNum, Integer produitRef, @Positive int quantite) {
-        throw new UnsupportedOperationException("Cette méthode n'est pas implémentée");
+
+        var produit = produitDao.findById(produitRef).orElseThrow();
+
+        var commande = commandeDao.findById(commandeNum).orElseThrow();
+
+        var resteEnStock = produit.getUnitesEnStock();
+
+        var ligne = new Ligne();
+
+        if( commande.getEnvoyeele() == null && quantite > 0 && resteEnStock >= quantite ) {
+            ligne.setCommande(commande);
+            ligne.setProduit(produit);
+            ligne.setQuantite(quantite);
+            ligneDao.save(ligne);
+
+            produit.setUnitesCommandees(produit.getUnitesCommandees() + quantite);
+        }else {
+            throw new IllegalArgumentException("Aucune ligne ajoutée");
+        }
+        return ligne;
     }
 }
